@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="CreditCard-wf">
+    <start to = "sqoopCustomer_node"/>
+
+     <!--Import Customer -->
+
+    <action name="sqoopCustomer_node">
+        
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+             <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/customer"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec import_customer</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+
+        <ok to="sqoopUpdateCustomer_node"/>
+        <error to="fail"/>
+    </action>
+
+    <!--Update Customer -->
+
+     <action name="sqoopUpdateCustomer_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+             <prepare>
+                 <delete path="${nameNode}/user/maria_dev/Credit_card_System/customer"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec update_customer</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="sqoopBranch_node"/>
+        <error to="fail"/>
+    </action>
+
+     <!-- Import Branch-->
+    <action name="sqoopBranch_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/branch"/>
+            </prepare>
+             <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec import_branch</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="sqoopUpdateBranch_node"/>
+        <error to="fail"/>
+    </action>
+
+
+    <!-- update Branch -->
+    <action name="sqoopUpdateBranch_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+             <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/branch"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec update_branch</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="sqoopTime_node"/>
+        <error to="fail"/>
+    </action>
+
+    <!-- Import Time -->
+
+    <action name="sqoopTime_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/time"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec import_time</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="sqoopUpdateTime_node"/>
+        <error to="fail"/>
+       </action>
+
+     <!-- update Time -->
+      <action name="sqoopUpdateTime_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/time"/>
+             </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec update_time</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="sqoopCreditcard_node"/>
+        <error to="fail"/>
+    </action>
+
+    <!-- Import Credit Card -->
+    <action name="sqoopCreditcard_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+        <prepare>
+               <delete path="${nameNode}/user/maria_dev/Credit_card_System/creditcard"/>
+        </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec import_CreditCard</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="sqoopUpdateCreditcard_node"/>
+        <error to="fail"/>
+    </action>
+
+     <!-- Update Credit Card -->
+    <action name="sqoopUpdateCreditcard_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+        <prepare>
+               <delete path="${nameNode}/user/maria_dev/Credit_card_System/creditcard"/>
+         </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <command>job --meta-connect jdbc:hsqldb:hsql://sandbox.hortonworks.com:16000/sqoop --exec update_CreditCard</command>
+            <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar#java-json.jar</archive>
+        </sqoop>
+        <ok to="hiveCustomer"/>
+        <error to="fail"/>
+    </action>
+
+<!-- Hive customer -->
+    <action name="hiveCustomer">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveCustomer</script>
+        </hive>
+        <ok to="hiveBranch"/>
+        <error to="Hivefail"/>
+    </action>
+
+    <!-- Hive Branch -->   
+    <action name="hiveBranch">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveBranch</script>
+        </hive>
+        <ok to="hiveTime"/>
+        <error to="Hivefail"/>
+    </action>
+
+    <!-- Hive Time -->
+    <action name="hiveTime">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveTime</script>
+        </hive>
+        <ok to="hiveCreditCard"/>
+        <error to="Hivefail"/>
+    </action>
+
+    <!-- Hive Credit Card  -->
+    <action name="hiveCreditCard">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveCreditCard</script>
+        </hive>
+        <ok to="end"/>
+        <error to="Hivefail"/>
+    </action>
+
+
+    <kill name="fail">
+        <message>sqoop failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    
+   
+    <kill name="Hivefail">
+        <message> Hive failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+
+    <end name="end"/>
+
+ </workflow-app>

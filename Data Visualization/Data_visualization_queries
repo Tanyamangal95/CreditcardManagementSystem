@@ -1,0 +1,13 @@
+Select sum(c.Transaction_value), branch_zip
+from cdw_sapp_f_credit_card c join cdw_sapp_d_branch b on c.branch_code = b.branch_code
+group by Branch_zip
+order by 1 desc
+limit 20;
+
+
+
+Select sum(c.transaction_value) as Transaction_Value, c.transaction_type, t.quarter
+from  cdw_sapp_d_time t join cdw_sapp_f_credit_card c on t.transactionid = c.transaction_id
+where year = 2018
+group by  transaction_type, quarter
+order by quarter;

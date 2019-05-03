@@ -1,0 +1,31 @@
+<coordinator-app xmlns ="uri:oozie:coordinator:0.2" name="weekdays-jobs" frequency="0/20 8-18 ? * 2-6" start="2019-01-22T08:00Z" end="2025-03-29T18:00Z" timezone = "America/New_York">
+
+	<controls>
+		<timeout>1</timeout>
+		<concurrency>1</concurrency>
+		<execution>FIFO</execution>
+		<throttle>1</throttle>
+	</controls>
+
+		<action>
+			<workflow>
+				<app-path>${nameNode}/user/maria_dev/Credit_card_System/workflow.xml</app-path>
+					<configuration>
+		                <property>
+		                    <name>jobTracker</name>
+		                    <value>${jobTracker}</value>
+		                </property>
+		                <property>
+		                    <name>nameNode</name>
+		                    <value>${nameNode}</value>
+		                </property>
+		                <property>
+		                    <name>queueName</name>
+		                    <value>${queueName}</value>
+		                </property>
+					</configuration>
+			</workflow>
+		</action>
+
+</coordinator-app>
+

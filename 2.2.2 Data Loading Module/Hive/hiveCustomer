@@ -1,0 +1,55 @@
+SET hive.exec.dynamic.partition= true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+Drop Table if Exists CDW_SAPP_D_CUSTOMER_EXT;
+
+CREATE EXTERNAL TABLE CDW_SAPP_D_CUSTOMER_EXT (CUST_SSN INT,
+                                               CUST_F_NAME STRING,
+                                               CUST_M_NAME STRING,
+                                               CUST_L_NAME STRING, 
+                                               CUST_CC_NO STRING,
+                                               CUST_STREET STRING,
+                                               CUST_CITY STRING,
+                                               CUST_STATE STRING,
+                                               CUST_COUNTRY STRING,
+                                               CUST_ZIP INT,
+                                               CUST_PHONE STRING,
+                                               CUST_EMAIL STRING,
+                                               LAST_UPDATED TIMESTAMP)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY'\t'
+LINES TERMINATED BY '\n'
+LOCATION "/user/maria_dev/Credit_card_System/customer";
+
+CREATE TABLE IF NOT EXISTS CDW_SAPP_D_CUSTOMER (CUST_SSN INT,
+                                  CUST_F_NAME STRING,
+                                  CUST_M_NAME STRING,
+                                  CUST_L_NAME STRING, 
+                                  CUST_CC_NO STRING,
+                                  CUST_STREET STRING,
+                                  CUST_CITY STRING,
+                                  CUST_COUNTRY STRING,
+                                  CUST_ZIP INT,
+                                  CUST_PHONE STRING,
+                                  CUST_EMAIL STRING,
+                                  LAST_UPDATED TIMESTAMP)
+PARTITIONED BY(CUST_STATE STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY'\t'
+LINES TERMINATED BY '\n';
+
+
+INSERT OVERWRITE TABLE CDW_SAPP_D_CUSTOMER
+PARTITION (CUST_STATE)
+SELECT CUST_SSN,
+       CUST_F_NAME,
+       CUST_M_NAME,
+       CUST_L_NAME, 
+       CUST_CC_NO,
+       CUST_STREET,
+       CUST_CITY,
+       CUST_COUNTRY,
+       CUST_ZIP,
+       CUST_PHONE,
+       CUST_EMAIL,
+       LAST_UPDATED,
+       CUST_STATE
+FROM CDW_SAPP_D_CUSTOMER_EXT;
+       

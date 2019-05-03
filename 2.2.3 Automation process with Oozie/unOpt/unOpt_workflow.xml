@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="UnOpt_CreditCard-wf">
+    <start to = "sqoopCustomer_node"/>
+
+     <!--Import Customer -->
+    <action name="sqoopCustomer_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+             <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/customer"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>jdbc:mysql://localhost/cdw_sapp</arg>
+            <arg>--driver</arg>
+            <arg>com.mysql.jdbc.Driver</arg>
+            <arg>--query</arg>
+            <arg>Select SSN, Concat(upper(substring(FIRST_NAME,1,1)), lower(substring(FIRST_NAME,2))), lower(MIDDLE_NAME), Concat(upper(substring(LAST_NAME,1,1)), lower(substring(LAST_NAME,2))), CREDIT_CARD_NO, Concat(APT_NO," ", STREET_NAME), CUST_CITY, CUST_STATE, CUST_COUNTRY, CUST_ZIP, CONCAT(substring(CUST_PHONE,1,3),"-",SUBSTRING(CUST_PHONE,4)) AS CUST_PHONE, CUST_EMAIL, LAST_UPDATED FROM cdw_sapp_customer WHERE $CONDITIONS</arg>
+            <arg>-m1</arg>
+            <arg>--target-dir </arg>
+            <arg>/user/Credit_Card_System/CDW_SAPP_D_BRANCH/</arg>
+            <arg>--delete-target-dir</arg>
+            <arg>--fields-terminated-by</arg>
+            <arg>\t</arg>
+        </sqoop>
+
+        <ok to="sqoopBranch_node"/>
+        <error to="fail"/>
+    </action>
+
+     <!-- Import Branch-->
+    <action name="sqoopBranch_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/branch"/>
+            </prepare>
+             <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+                <arg>import</arg>
+                <arg>--connect</arg>
+                <arg>jdbc:mysql://localhost/cdw_sapp</arg>
+                <arg>--driver</arg>
+                <arg>com.mysql.jdbc.Driver</arg>
+                <arg>--query</arg>
+                <arg>Select  BRANCH_CODE, BRANCH_NAME, BRANCH_STREET, BRANCH_CITY, BRANCH_STATE, CASE WHEN BRANCH_ZIP IS NULL THEN BRANCH_ZIP = "999999" ELSE BRANCH_ZIP END, CONCAT(substring(BRANCH_PHONE,1,3),"-",SUBSTRING(BRANCH_PHONE,4,3),"-", SUBSTRING(BRANCH_PHONE,7)), LAST_UPDATED FROM cdw_sapp_branch WHERE $CONDITIONS</arg>
+                <arg>-m1</arg>
+                <arg>--target-dir </arg>
+                <arg>/user/Credit_Card_System/CDW_SAPP_D_BRANCH/</arg>
+                <arg>--delete-target-dir</arg>
+                <arg>--fields-terminated-by</arg>
+                <arg>\t</arg>
+        </sqoop>
+        <ok to="sqoopTime_node"/>
+        <error to="fail"/>
+    </action>
+
+
+    <!-- Import Time -->
+
+    <action name="sqoopTime_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/maria_dev/Credit_card_System/time"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>jdbc:mysql://localhost/cdw_sapp</arg>
+            <arg>--driver</arg>
+            <arg>com.mysql.jdbc.Driver</arg>
+            <arg>--query</arg>
+            <arg>Select Transaction_ID, Concat(Year,month,Day) as TIMEID, DAY, MONTH,concat("Q",round((MONTH+1)/3,0)) As Quarter, YEAR, LAST_UPDATED FROM cdw_sapp_creditcard WHERE $CONDITIONS</arg>
+            <arg>-m1</arg>
+            <arg>--target-dir </arg>
+            <arg>/user/Credit_Card_System/CDW_SAPP_D_BRANCH/</arg>
+            <arg>--delete-target-dir</arg>
+            <arg>--fields-terminated-by</arg>
+            <arg>\t</arg>
+        </sqoop>
+        <ok to="sqoopCreditcard_node"/>
+        <error to="fail"/>
+       </action>
+
+     
+    <!-- Import Credit Card -->
+    <action name="sqoopCreditcard_node">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+        <prepare>
+               <delete path="${nameNode}/user/maria_dev/Credit_card_System/creditcard"/>
+        </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>jdbc:mysql://localhost/cdw_sapp</arg>
+            <arg>--driver</arg>
+            <arg>com.mysql.jdbc.Driver</arg>
+            <arg>--query</arg>
+            <arg>Select CREDIT_CARD_NO, Concat(year,month,day) as TIMEID, CUST_SSN, BRANCH_CODE, TRANSACTION_TYPE, TRANSACTION_VALUE, TRANSACTION_ID, LAST_UPDATED FROM cdw_sapp_creditcard WHERE $CONDITIONS</arg>
+            <arg>-m1</arg>
+            <arg>--target-dir </arg>
+            <arg>/user/Credit_Card_System/CDW_SAPP_D_BRANCH/</arg>
+            <arg>--delete-target-dir</arg>
+            <arg>--fields-terminated-by</arg>
+            <arg>\t</arg>
+        </sqoop>
+        <ok to="hiveCustomer"/>
+        <error to="fail"/>
+    </action>
+
+
+<!-- Hive customer -->
+    <action name="hiveCustomer">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveCustomer</script>
+        </hive>
+        <ok to="hiveBranch"/>
+        <error to="Hivefail"/>
+    </action>
+
+    <!-- Hive Branch -->   
+    <action name="hiveBranch">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveBranch</script>
+        </hive>
+        <ok to="hiveTime"/>
+        <error to="Hivefail"/>
+    </action>
+
+    <!-- Hive Time -->
+    <action name="hiveTime">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveTime</script>
+        </hive>
+        <ok to="hiveCreditCard"/>
+        <error to="Hivefail"/>
+    </action>
+
+    <!-- Hive Credit Card  -->
+    <action name="hiveCreditCard">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>${nameNode}/user/maria_dev/Credit_card_System/HiveImports/hiveCreditCard</script>
+        </hive>
+        <ok to="end"/>
+        <error to="Hivefail"/>
+    </action>
+
+
+    <kill name="fail">
+        <message>sqoop failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    
+   
+    <kill name="Hivefail">
+        <message> Hive failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+
+    <end name="end"/>
+
+ </workflow-app>

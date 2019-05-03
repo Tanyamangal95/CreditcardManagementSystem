@@ -1,0 +1,139 @@
+
+------------------------------------CUSTOMER------------------------------------
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create import_customer
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select SSN, Concat(upper(substring(FIRST_NAME,1,1)), lower(substring(FIRST_NAME,2))), lower(MIDDLE_NAME), Concat(upper(substring(LAST_NAME,1,1)), lower(substring(LAST_NAME,2))), CREDIT_CARD_NO, Concat(APT_NO," ", STREET_NAME), CUST_CITY, CUST_STATE, CUST_COUNTRY, CUST_ZIP, CONCAT(substring(CUST_PHONE,1,3),"-",SUBSTRING(CUST_PHONE,4)) AS CUST_PHONE, CUST_EMAIL, LAST_UPDATED FROM cdw_sapp_customer WHERE $CONDITIONS' 
+--incremental append
+--check-column LAST_UPDATED 
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/customer
+--fields-terminated-by '\t'
+
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec import_customer
+
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create update_customer
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select SSN, Concat(upper(substring(FIRST_NAME,1,1)), lower(substring(FIRST_NAME,2))), lower(MIDDLE_NAME), Concat(upper(substring(LAST_NAME,1,1)), lower(substring(LAST_NAME,2))), CREDIT_CARD_NO, Concat(APT_NO," ", STREET_NAME), CUST_CITY, CUST_STATE, CUST_COUNTRY, CUST_ZIP, CONCAT(substring(CUST_PHONE,1,3),"-",SUBSTRING(CUST_PHONE,4)) AS CUST_PHONE, CUST_EMAIL, LAST_UPDATED FROM cdw_sapp_customer WHERE $CONDITIONS'
+--merge-key SSN 
+--incremental lastmodified 
+--check-column LAST_UPDATED  
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/customer
+--fields-terminated-by '\t'
+
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec update_customer
+
+--------------------------BRANCH--------------------------------------------
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create import_branch
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select  BRANCH_CODE, BRANCH_NAME, BRANCH_STREET, BRANCH_CITY, BRANCH_STATE, CASE WHEN BRANCH_ZIP IS NULL THEN BRANCH_ZIP = "999999" ELSE BRANCH_ZIP END, CONCAT(substring(BRANCH_PHONE,1,3),"-",SUBSTRING(BRANCH_PHONE,4,3),"-", SUBSTRING(BRANCH_PHONE,7)), LAST_UPDATED FROM cdw_sapp_branch WHERE $CONDITIONS' --incremental append
+--check-column LAST_UPDATED 
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/branch
+--fields-terminated-by '\t'
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec import_branch
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create update_branch
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select  BRANCH_CODE, BRANCH_NAME, BRANCH_STREET, BRANCH_CITY, BRANCH_STATE, CASE WHEN BRANCH_ZIP IS NULL THEN BRANCH_ZIP = "999999" ELSE BRANCH_ZIP END, CONCAT(substring(BRANCH_PHONE,1,3),"-",SUBSTRING(BRANCH_PHONE,4,3),"-", SUBSTRING(BRANCH_PHONE,7)), LAST_UPDATED FROM cdw_sapp_branch WHERE $CONDITIONS' 
+--merge-key BRANCH_CODE
+--incremental lastmodified
+--check-column LAST_UPDATED 
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/branch
+--fields-terminated-by '\t'
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec update_branch
+-------------------------------TIME---------------------------------------------------
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create import_time
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select Transaction_ID, Concat(Year,month,Day) as TIMEID, DAY, MONTH,concat("Q",round((MONTH+1)/3,0)) As Quarter, YEAR, LAST_UPDATED FROM cdw_sapp_creditcard WHERE $CONDITIONS'
+--incremental append
+--check-column LAST_UPDATED 
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/time
+--fields-terminated-by '\t'
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec import_Time
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create update_time
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select Transaction_ID, Concat(Year,month,Day) as TIMEID, DAY, MONTH, concat("Q",round((MONTH+1)/3,0)) As Quarter, YEAR, LAST_UPDATED FROM cdw_sapp_creditcard WHERE $CONDITIONS'
+--append
+--incremental lastmodified
+--check-column LAST_UPDATED 
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/time
+--fields-terminated-by '\t'
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec update_time
+-----------------------------------Credit Card---------------------------------------------
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create import_CreditCard
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select CREDIT_CARD_NO, Concat(year,month,day) as TIMEID, CUST_SSN, BRANCH_CODE, TRANSACTION_TYPE, TRANSACTION_VALUE, TRANSACTION_ID, LAST_UPDATED FROM cdw_sapp_creditcard WHERE $CONDITIONS'
+--incremental append
+--check-column Transaction_ID
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/creditcard
+--fields-terminated-by '\t'
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec import_CreditCard
+
+sqoop job
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop
+--create update_CreditCard
+-- import 
+--m 1 
+--connect jdbc:mysql://localhost/cdw_sapp 
+--driver com.mysql.jdbc.Driver 
+--query 'Select CREDIT_CARD_NO, Concat(year,month,day) as TIMEID, CUST_SSN, BRANCH_CODE, TRANSACTION_TYPE, TRANSACTION_VALUE, TRANSACTION_ID, LAST_UPDATED FROM cdw_sapp_creditcard WHERE $CONDITIONS' 
+--append
+--incremental lastmodified
+--check-column LAST_UPDATED
+--last-value '0' 
+--target-dir /user/maria_dev/Credit_card_System/creditcard
+--fields-terminated-by '\t'
+
+sqoop job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec update_CreditCard
